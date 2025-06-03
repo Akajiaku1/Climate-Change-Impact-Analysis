@@ -1,0 +1,64 @@
+# Climate-Change-Impact-Analysis
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
+
+# Load dataset (example: temperature and precipitation data)
+def load_data(file_path):
+    """Load climate data from a CSV file."""
+    data = pd.read_csv(file_path, parse_dates=['Date'])
+    data.set_index('Date', inplace=True)
+    return data
+
+# Preprocess dataset
+def preprocess_data(data):
+    """Handle missing values and resample to yearly means."""
+    data = data.resample('Y').mean()
+    data = data.interpolate(method='linear')
+    return data
+
+# Trend Analysis
+def trend_analysis(data, column):
+    """Perform linear regression to detect trends."""
+    X = np.array(range(len(data))).reshape(-1, 1)
+    y = data[column].values
+    model = LinearRegression()
+    model.fit(X, y)
+    trend = model.predict(X)
+    r2 = r2_score(y, trend)
+    return trend, r2
+
+# Plot trends
+def plot_trends(data, column, trend):
+    """Plot the original data and the trend line."""
+    plt.figure(figsize=(10, 6))
+    plt.plot(data.index, data[column], label=f'Actual {column}')
+    plt.plot(data.index, trend, label=f'Trend line', linestyle='--')
+    plt.title(f'{column} Trend Analysis')
+    plt.xlabel('Year')
+    plt.ylabel(column)
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+# Main function
+def main():
+    file_path = 'climate_data.csv'  # Your CSV file path here
+    data = load_data(file_path)
+    data = preprocess_data(data)
+
+    # Analyze Temperature
+    temp_trend, temp_r2 = trend_analysis(data, 'Temperature')
+    print(f"Temperature Trend R^2: {temp_r2:.2f}")
+    plot_trends(data, 'Temperature', temp_trend)
+
+    # Analyze Precipitation
+    precip_trend, precip_r2 = trend_analysis(data, 'Precipitation')
+    print(f"Precipitation Trend R^2: {precip_r2:.2f}")
+    plot_trends(data, 'Precipitation', precip_trend)
+
+if __name__ == "__main__":
+    main()
